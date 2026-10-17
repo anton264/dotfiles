@@ -4,5 +4,5 @@ set -eufo pipefail
 # Ensure Oh My Zsh is installed before applying zsh configuration
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
     echo "==> Installing Oh My Zsh..."
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc
+    CHSH=no RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc
 fi
