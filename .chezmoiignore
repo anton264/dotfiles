@@ -1,0 +1,7 @@
+# Files and folders to ignore when applying to target directory ($HOME)
+README.md
+install.sh
+Brewfile
+.vscode/
+.idea/
+.DS_Store

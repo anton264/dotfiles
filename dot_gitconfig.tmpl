@@ -1,0 +1,30 @@
+[user]
+    name = {{ .name }}
+    email = {{ .email }}
+
+[init]
+    defaultBranch = main
+
+[core]
+    editor = vim
+    autocrlf = input
+    excludesfile = ~/.config/git/ignore
+
+[pull]
+    rebase = true
+
+[push]
+    autoSetupRemote = true
+
+[diff]
+    colorMoved = default
+
+[rerere]
+    enabled = true
+
+[alias]
+    st = status
+    co = checkout
+    br = branch
+    ci = commit
+    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit

@@ -1,0 +1,18 @@
+# Starship prompt configuration
+# See https://starship.rs/config/
+
+add_newline = true
+
+[character]
+success_symbol = "[➜](bold green)"
+error_symbol = "[➜](bold red)"
+
+[git_branch]
+symbol = "🌱 "
+truncation_length = 30
+
+[git_status]
+style = "bold red"
+
+[package]
+disabled = true

@@ -1,0 +1,9 @@
+# Machine-specific configuration template
+# This will prompt you during `chezmoi init` and save answers to ~/.config/chezmoi/chezmoi.toml
+
+{{- $email := promptStringOnce . "email" "Git email address" -}}
+{{- $name := promptStringOnce . "name" "Git user name" "Anton" -}}
+
+[data]
+    name = {{ $name | quote }}
+    email = {{ $email | quote }}
