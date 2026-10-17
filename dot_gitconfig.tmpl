@@ -1,6 +1,6 @@
 [user]
-    name = {{ .name }}
-    email = {{ .email }}
+    name = {{ if hasKey . "name" }}{{ .name }}{{ else }}Anton Eriksmo{{ end }}
+    email = {{ if hasKey . "email" }}{{ .email }}{{ else }}anton.eriksmo@gmail.com{{ end }}
 
 [init]
     defaultBranch = main

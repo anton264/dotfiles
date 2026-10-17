@@ -197,8 +197,11 @@ fi
 # -----------------------------------------------------------------------------
 # 6. Initialize and apply dotfiles
 # -----------------------------------------------------------------------------
-echo "==> Initializing and applying chezmoi dotfiles..."
-chezmoi init --apply "${DOTFILES_REPO}"
+echo "==> Initializing chezmoi dotfiles..."
+chezmoi init "${DOTFILES_REPO}"
+
+echo "==> Applying dotfiles to home directory..."
+chezmoi apply
 
 echo ""
 echo "======================================================================"

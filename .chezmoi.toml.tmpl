@@ -1,8 +1,9 @@
+{{/* chezmoi:template:missing-key=zero */}}
 # Machine-specific configuration template
-# This will prompt you during `chezmoi init` and save answers to ~/.config/chezmoi/chezmoi.toml
+# Prompts during `chezmoi init` and saves answers to ~/.config/chezmoi/chezmoi.toml
 
-{{- $email := promptStringOnce . "email" "Git email address" -}}
-{{- $name := promptStringOnce . "name" "Git user name" "Anton" -}}
+{{- $email := promptStringOnce . "email" "Git email address" "anton.eriksmo@gmail.com" -}}
+{{- $name := promptStringOnce . "name" "Git user name" "Anton Eriksmo" -}}
 
 [data]
     name = {{ $name | quote }}
