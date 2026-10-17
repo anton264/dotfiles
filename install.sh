@@ -59,8 +59,8 @@ done
 install_packages_linux() {
   echo "==> Installing prerequisite packages on Linux..."
   if command -v apt-get >/dev/null 2>&1; then
-    run_as_root apt-get update -y
-    run_as_root apt-get install -y zsh curl git
+    run_as_root env DEBIAN_FRONTEND=noninteractive apt-get update -y
+    run_as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y zsh curl git
   elif command -v dnf >/dev/null 2>&1; then
     run_as_root dnf install -y zsh curl git
   elif command -v yum >/dev/null 2>&1; then
@@ -109,33 +109,75 @@ if ! command -v zsh >/dev/null 2>&1; then
 fi
 
 # -----------------------------------------------------------------------------
-# 3. Set zsh as default shell if not already
+# 3. Set zsh as default shell (non-blocking)
 # -----------------------------------------------------------------------------
-ZSH_PATH="$(command -v zsh)"
-CURRENT_SHELL="$(basename "${SHELL:-}")"
+set_default_shell() {
+  ZSH_PATH="$(command -v zsh)"
+  TARGET_USER="${USER:-$(id -un)}"
 
-if [ "$CURRENT_SHELL" != "zsh" ]; then
-  echo "==> Setting default shell to zsh (${ZSH_PATH})..."
+  # Detect current login shell from system database
+  CURRENT_LOGIN_SHELL=""
+  if [ "$OS" = "Linux" ] && command -v getent >/dev/null 2>&1; then
+    CURRENT_LOGIN_SHELL="$(getent passwd "${TARGET_USER}" 2>/dev/null | cut -d: -f7)"
+  elif [ "$OS" = "Darwin" ] && command -v dscl >/dev/null 2>&1; then
+    CURRENT_LOGIN_SHELL="$(dscl . -read "/Users/${TARGET_USER}" UserShell 2>/dev/null | awk '{print $2}')"
+  fi
+  [ -z "${CURRENT_LOGIN_SHELL}" ] && CURRENT_LOGIN_SHELL="${SHELL:-}"
+
+  if [ "$(basename "${CURRENT_LOGIN_SHELL}")" = "zsh" ]; then
+    echo "==> Default shell is already zsh (${CURRENT_LOGIN_SHELL})."
+    return 0
+  fi
+
+  echo "==> Setting default shell to zsh (${ZSH_PATH}) for user '${TARGET_USER}'..."
+
   # Ensure zsh is listed in /etc/shells
-  if [ -f /etc/shells ]; then
-    if ! grep -Fxq "${ZSH_PATH}" /etc/shells 2>/dev/null; then
-      echo "${ZSH_PATH}" | run_as_root tee -a /etc/shells >/dev/null || true
+  if [ -f /etc/shells ] && ! grep -Fxq "${ZSH_PATH}" /etc/shells 2>/dev/null; then
+    echo "${ZSH_PATH}" | run_as_root tee -a /etc/shells >/dev/null 2>&1 || true
+  fi
+
+  # 1. On Linux: usermod run with sudo/root modifies /etc/passwd without asking for user password
+  if [ "$OS" = "Linux" ] && command -v usermod >/dev/null 2>&1; then
+    if run_as_root usermod -s "${ZSH_PATH}" "${TARGET_USER}" 2>/dev/null; then
+      echo "==> Successfully updated default shell to zsh via usermod."
+      return 0
     fi
   fi
 
-  # Attempt chsh without failing the entire script if non-interactive
-  if command -v chsh >/dev/null 2>&1; then
-    chsh -s "${ZSH_PATH}" "$USER" 2>/dev/null || chsh -s "${ZSH_PATH}" 2>/dev/null || echo "Note: Run 'chsh -s ${ZSH_PATH}' manually if default shell change was skipped."
+  # 2. On macOS: dscl run with sudo/root updates UserShell directly
+  if [ "$OS" = "Darwin" ] && command -v dscl >/dev/null 2>&1; then
+    if run_as_root dscl . -create "/Users/${TARGET_USER}" UserShell "${ZSH_PATH}" 2>/dev/null; then
+      echo "==> Successfully updated default shell to zsh via dscl."
+      return 0
+    fi
   fi
-fi
+
+  # 3. Try chsh with root/sudo (does not prompt for password)
+  if command -v chsh >/dev/null 2>&1; then
+    if run_as_root chsh -s "${ZSH_PATH}" "${TARGET_USER}" 2>/dev/null; then
+      echo "==> Successfully updated default shell to zsh via root chsh."
+      return 0
+    fi
+  fi
+
+  # 4. Fallback: only attempt user chsh if an interactive terminal is attached
+  if [ -t 0 ] && command -v chsh >/dev/null 2>&1; then
+    echo "==> Please enter your login password if prompted by chsh:"
+    chsh -s "${ZSH_PATH}" || echo "Note: Could not set default shell automatically. Run 'chsh -s ${ZSH_PATH}' manually."
+  else
+    echo "==> Non-interactive terminal: skipping chsh to prevent hanging."
+    echo "    To make zsh your default shell, run: chsh -s ${ZSH_PATH}"
+  fi
+}
+
+set_default_shell
 
 # -----------------------------------------------------------------------------
 # 4. Install Oh My Zsh (if not already installed)
 # -----------------------------------------------------------------------------
 if [ ! -d "${HOME}/.oh-my-zsh" ]; then
   echo "==> Installing Oh My Zsh (unattended)..."
-  # RUNZSH=no prevents starting a new shell; KEEP_ZSHRC=yes avoids overwriting existing ~/.zshrc before chezmoi applies
-  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc
+  CHSH=no RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc
 else
   echo "==> Oh My Zsh is already installed at ${HOME}/.oh-my-zsh."
 fi
