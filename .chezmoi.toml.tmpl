@@ -2,8 +2,8 @@
 # Machine-specific configuration template
 # Prompts during `chezmoi init` and saves answers to ~/.config/chezmoi/chezmoi.toml
 
-{{- $email := promptStringOnce . "email" "Git email address" "anton.eriksmo@gmail.com" -}}
-{{- $name := promptStringOnce . "name" "Git user name" "Anton Eriksmo" -}}
+{{- $email := promptStringOnce . "email" "Git email address" "anton@anton.anton" -}}
+{{- $name := promptStringOnce . "name" "Git user name" "Anton" -}}
 
 [data]
     name = {{ $name | quote }}
