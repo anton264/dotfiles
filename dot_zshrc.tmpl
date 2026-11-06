@@ -42,6 +42,14 @@ fi
 # Aliases & Functions
 # -----------------------------------------------------------------------------
 alias k=kubectl
+if (( $+commands[kubectl] )); then
+    if ! (( $+functions[__start_kubectl] )); then
+        source <(kubectl completion zsh)
+    fi
+    if (( $+functions[compdef] )); then
+        compdef __start_kubectl k 2>/dev/null || true
+    fi
+fi
 
 # Use lsd if available, otherwise sensible default
 if command -v lsd >/dev/null 2>&1; then
@@ -111,10 +119,6 @@ if [[ -d "$HOME/.antigravity-ide/antigravity-ide/bin" ]]; then
     export PATH="$HOME/.antigravity-ide/antigravity-ide/bin:$PATH"
 fi
 
-# OpenClaw Completion
-if [[ -f "$HOME/.openclaw/completions/openclaw.zsh" ]]; then
-    source "$HOME/.openclaw/completions/openclaw.zsh"
-fi
 
 # Local bin env
 if [[ -f "$HOME/.local/bin/env" ]]; then

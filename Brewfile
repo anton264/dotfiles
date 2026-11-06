@@ -16,6 +16,10 @@ brew "bat"
 brew "lsd"
 brew "jq"
 
+# Kubernetes & Cloud Native
+brew "kubernetes-cli"
+brew "helm"
+
 # Optional casks (uncomment if desired)
 # cask "visual-studio-code"
 # cask "iterm2"

@@ -1,6 +1,14 @@
 #!/bin/bash
 set -eufo pipefail
 
+# Ensure Homebrew is in PATH if available
+for brew_bin in "/opt/homebrew/bin" "$HOME/homebrew/bin" "/usr/local/bin" "/home/linuxbrew/.linuxbrew/bin"; do
+  if [ -x "${brew_bin}/brew" ]; then
+    eval "$("${brew_bin}/brew" shellenv)"
+    break
+  fi
+done
+
 # Brewfile hash: {{ include "Brewfile" | sha256sum }}
 if command -v brew >/dev/null 2>&1; then
     echo "==> Running Homebrew bundle..."
